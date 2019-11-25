@@ -1,0 +1,31 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Ever Sign</h1>
+    <div id="container"></div>
+</div>
+<script type="text/javascript" src="https://static.eversign.com/js/embedded-signing.js"></script>
+<script>
+    eversign.open({
+    url: "YOUR_EMBEDDED_SIGNING_URL",
+	containerID: "container",
+	width: 600,
+	height: 600,
+	events: {
+	  loaded: function () {
+		console.log("loaded Callback");
+	  },
+	  signed: function () {
+		console.log("signed Callback");
+	  },
+	  declined: function () {
+		console.log("declined Callback");
+	  },
+	  error: function () {
+		console.log("error Callback");
+	  }
+	}
+});
+</script>
