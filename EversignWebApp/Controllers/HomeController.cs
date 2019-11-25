@@ -2,11 +2,12 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using EversignWebApp.Models;
-using System;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using System.Text;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace EversignWebApp.Controllers
 {
@@ -26,24 +27,55 @@ namespace EversignWebApp.Controllers
         {
             string baseUrl = $"https://api.eversign.com/api/document?access_key={ACCESS_KEY}&business_id={BUSINESS_ID}";
 
-            var person = new
+            var requestBody = new
             {
-                Name = "John Doe",
-                Occupation = "gardener"
+                sandbox = 1,
+                is_draft = 0,
+                embedded = 0,
+                title = "Sample Document",
+                message = "This is my general document message.",
+                reminders = 1,
+                require_all_signers = 1,
+                redirect = "https://myredirect.com/completed",
+                redirect_decline = "https://myredirect.com/declined",
+                embedded_signing_enabled = 1,
+                flexible_signing = 0,
+                use_hidden_tags = 0,
+                files = new List<dynamic> {
+                    new {
+                        name = "My Document File",
+                        file_url = "https://file-examples.com/wp-content/uploads/2017/10/file-example_PDF_1MB.pdf",
+                        file_id = "",
+                        file_base64 = ""
+                    }
+                },
+                signers = new List<dynamic> {
+                    new {
+                        id = 1,
+                        name = "Gab McSign",
+                        email = "miguelp@pageuppeople.com"
+                    }
+                },
+                recipients = new List<dynamic> {
+                    new {
+                        name = "Gab McSign",
+                        email = "miguelp@pageuppeople.com",
+                    }
+                },
+                fields = new List<dynamic>()
             };
 
-            var json = JsonConvert.SerializeObject(person);
+            var json = JsonConvert.SerializeObject(requestBody);
             var requestContent = new StringContent(json, Encoding.UTF8, "application/json");
 
             HttpClient client = new HttpClient();
             HttpResponseMessage response = await client.PostAsync(baseUrl, requestContent);
 
-            string result = response.Content.ReadAsStringAsync().Result;
-            {
-                Console.WriteLine(result);
-            }
+            EversignDocument document = JsonConvert.DeserializeObject<EversignDocument>(response.Content.ReadAsStringAsync().Result);
 
-            return View();
+            return View(new HomeViewModel { 
+                EmbeddedSigningUrl = document.signers.First().embedded_signing_url
+            });
         }
 
         public IActionResult Privacy()
